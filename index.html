@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crafton</title>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080808;
+      --card: #0f0f13;
+      --border: rgba(255,255,255,0.08);
+      --input-bg: rgba(255,255,255,0.04);
+      --input-border: rgba(255,255,255,0.1);
+      --input-focus: rgba(255,255,255,0.3);
+      --text: #e8e8e8;
+      --muted: #666;
+      --accent: #fff;
+      --error: #ff4d4d;
+      --weak: #ff4d4d;
+      --fair: #ffaa00;
+      --good: #66cc66;
+      --strong: #00e5ff;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    /* ── Particles ── */
+    #particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .pt {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      animation: drift linear infinite;
+      opacity: 0;
+    }
+    @keyframes drift {
+      0%   { opacity: 0; transform: translate(0,0) scale(1); }
+      10%  { opacity: 0.35; }
+      90%  { opacity: 0.35; }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.5); }
+    }
+
+    /* ── Logo ── */
+    .logo-wrap {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 1.5rem;
+    }
+    .logo-wrap img {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      filter: invert(1);
+      opacity: 0.85;
+      animation: logoFloat 4s ease-in-out infinite;
+    }
+    @keyframes logoFloat {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+
+    /* ── Card ── */
+    .card {
+      position: relative;
+      z-index: 2;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 420px;
+      padding: 2.5rem 2.25rem;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.8rem;
+      letter-spacing: 0.12em;
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    .tab {
+      flex: 1;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: 0.65rem 0;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      margin-bottom: -1px;
+    }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── Inputs ── */
+    .field { margin-bottom: 1rem; }
+    .field label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+    .input-wrap { position: relative; }
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--input-focus); }
+    input.err   { border-color: var(--error) !important; }
+
+    .char-count {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.72rem;
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .char-count.over { color: var(--error); }
+
+    .err-msg {
+      font-size: 0.75rem;
+      color: var(--error);
+      margin-top: 0.3rem;
+      min-height: 1rem;
+    }
+
+    /* ── Password Strength Bar ── */
+    .strength-wrap {
+      margin-top: 0.5rem;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .strength-bar {
+      flex: 1;
+      height: 4px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.08);
+      transition: background 0.3s;
+    }
+    .strength-bar.weak   { background: var(--weak); }
+    .strength-bar.fair   { background: var(--fair); }
+    .strength-bar.good   { background: var(--good); }
+    .strength-bar.strong { background: var(--strong); }
+    .strength-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      width: 52px;
+      text-align: right;
+      color: var(--muted);
+      transition: color 0.3s;
+    }
+
+    /* ── Google reCAPTCHA box ── */
+    .captcha-wrap {
+      margin-bottom: 1.25rem;
+      display: flex;
+      justify-content: center;
+    }
+    .g-recaptcha {
+      transform-origin: left center;
+    }
+
+    /* ── Button ── */
+    .btn {
+      width: 100%;
+      padding: 0.9rem;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.15rem;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      margin-top: 0.25rem;
+    }
+    .btn:hover {
+      background: #ddd;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255,255,255,0.12);
+    }
+    .btn:active { transform: translateY(0); }
+
+    /* ── Hidden util ── */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div id="particles"></div>
+
+<div class="logo-wrap">
+  <img src="https://img.freepik.com/premium-vector/drawn-continuous-one-line-computer-mouse-logo-vector-illustration-computer-mouse-black-stroke_952091-3283.jpg" alt="Crafton"/>
+</div>
+
+<div class="card">
+  <h1>CRAFTON</h1>
+
+  <div class="tabs">
+    <button class="tab active" id="tab0" onclick="switchTab(0)">Sign Up</button>
+    <button class="tab"        id="tab1" onclick="switchTab(1)">Sign In</button>
+  </div>
+
+  <!-- ══ SIGN UP ══ -->
+  <div id="signupForm">
+
+    <div class="field">
+      <label>Username</label>
+      <div class="input-wrap">
+        <input id="su_username" type="text" placeholder="Max 10 characters" maxlength="10"
+               oninput="validateUsername(this)" onpaste="return false"/>
+        <span class="char-count" id="su_ucount">0/10</span>
+      </div>
+      <div class="err-msg" id="su_uErr"></div>
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <input id="su_password" type="password" placeholder="Create a password" maxlength="20"
+               oninput="updateStrength()" onpaste="return false"/>
+      </div>
+      <div class="strength-wrap">
+        <div class="strength-bar" id="sb1"></div>
+        <div class="strength-bar" id="sb2"></div>
+        <div class="strength-bar" id="sb3"></div>
+        <div class="strength-bar" id="sb4"></div>
+        <span class="strength-label" id="sLabel"></span>
+      </div>
+      <div class="err-msg" id="su_pErr"></div>
+    </div>
+
+    <div class="field">
+      <label>Confirm Password</label>
+      <div class="input-wrap">
+        <input id="su_confirm" type="password" placeholder="Repeat password" maxlength="20"
+               oninput="checkConfirm()" onpaste="return false"/>
+      </div>
+      <div class="err-msg" id="su_cErr"></div>
+    </div>
+
+    <!-- ⚠️ Replace YOUR_SITE_KEY with your real Google reCAPTCHA v2 site key -->
+    <div class="captcha-wrap">
+      <div class="g-recaptcha" data-sitekey="YOUR_SITE_KEY" data-theme="dark"></div>
+    </div>
+
+    <button class="btn" onclick="signup()">CREATE ACCOUNT</button>
+  </div>
+
+  <!-- ══ SIGN IN ══ -->
+  <div id="signinForm" class="hidden">
+
+    <div class="field">
+      <label>Username</label>
+      <div class="input-wrap">
+        <input id="si_username" type="text" placeholder="Your username" maxlength="10"
+               oninput="validateUsername(this)" onpaste="return false"/>
+        <span class="char-count" id="si_ucount">0/10</span>
+      </div>
+      <div class="err-msg" id="si_uErr"></div>
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <input id="si_password" type="password" placeholder="Your password" maxlength="20"
+               onpaste="return false"/>
+      </div>
+      <div class="err-msg" id="si_pErr"></div>
+    </div>
+
+    <!-- ⚠️ Replace YOUR_SITE_KEY with your real Google reCAPTCHA v2 site key -->
+    <div class="captcha-wrap">
+      <div class="g-recaptcha" data-sitekey="YOUR_SITE_KEY" data-theme="dark"></div>
+    </div>
+
+    <div class="err-msg" id="si_genErr" style="text-align:center;margin-bottom:0.5rem"></div>
+    <button class="btn" onclick="signin()">SIGN IN</button>
+  </div>
+
+</div>
+
+<script>
+// ── Particles ──────────────────────────────────────────────
+(function(){
+  const c = document.getElementById('particles');
+  for(let i=0;i<55;i++){
+    const p = document.createElement('div');
+    p.className = 'pt';
+    const s = Math.random()*2.5+0.5;
+    p.style.cssText = `
+      width:${s}px;height:${s}px;
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      animation-duration:${Math.random()*35+20}s;
+      animation-delay:${Math.random()*15}s;
+      --dx:${(Math.random()-.5)*500}px;
+      --dy:${(Math.random()-.5)*500}px;
+    `;
+    c.appendChild(p);
+  }
+})();
+
+// ── Tab switch ─────────────────────────────────────────────
+function switchTab(n){
+  document.getElementById('tab0').classList.toggle('active', n===0);
+  document.getElementById('tab1').classList.toggle('active', n===1);
+  document.getElementById('signupForm').classList.toggle('hidden', n!==0);
+  document.getElementById('signinForm').classList.toggle('hidden', n!==1);
+  // reset reCAPTCHA widgets on tab switch
+  if(typeof grecaptcha !== 'undefined') grecaptcha.reset();
+}
+
+// ── Username validation (max 10, alphanumeric + _) ─────────
+function validateUsername(el){
+  const val = el.value;
+  const isSignup = el.id === 'su_username';
+  const countId  = isSignup ? 'su_ucount' : 'si_ucount';
+  const errId    = isSignup ? 'su_uErr'   : 'si_uErr';
+  const cnt = document.getElementById(countId);
+  const err = document.getElementById(errId);
+
+  cnt.textContent = `${val.length}/10`;
+  cnt.classList.toggle('over', val.length >= 10);
+
+  if(val.length === 0){
+    err.textContent = ''; el.classList.remove('err'); return;
+  }
+  if(!/^[a-zA-Z0-9_]+$/.test(val)){
+    err.textContent = 'Only letters, numbers and _ allowed.';
+    el.classList.add('err'); return;
+  }
+  if(val.length > 10){
+    err.textContent = 'Username cannot exceed 10 characters.';
+    el.classList.add('err'); return;
+  }
+  err.textContent = ''; el.classList.remove('err');
+}
+
+// ── Password strength bar ──────────────────────────────────
+const bars   = ['sb1','sb2','sb3','sb4'];
+const levels = ['', 'weak','fair','good','strong'];
+const colors = { weak:'#ff4d4d', fair:'#ffaa00', good:'#66cc66', strong:'#00e5ff' };
+
+function scorePassword(p){
+  if(!p) return 0;
+  let s = 0;
+  if(p.length >= 6)  s++;
+  if(p.length >= 10) s++;
+  if(/[A-Z]/.test(p) && /[a-z]/.test(p)) s++;
+  if(/[0-9]/.test(p)) s++;
+  if(/[^a-zA-Z0-9]/.test(p)) s++;
+  return Math.min(Math.ceil(s/5*4), 4);
+}
+
+function updateStrength(){
+  const p = document.getElementById('su_password').value;
+  const score = scorePassword(p);
+  const label = document.getElementById('sLabel');
+
+  bars.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = 'strength-bar';
+    if(p.length > 0 && i < score) el.classList.add(levels[score]);
+  });
+
+  if(!p){ label.textContent = ''; label.style.color = ''; }
+  else  { label.textContent = levels[score].toUpperCase(); label.style.color = colors[levels[score]] || ''; }
+
+  checkConfirm();
+}
+
+function checkConfirm(){
+  const p = document.getElementById('su_password').value;
+  const c = document.getElementById('su_confirm').value;
+  const err = document.getElementById('su_cErr');
+  if(!c){ err.textContent=''; return; }
+  if(p !== c){ err.textContent='Passwords do not match.'; }
+  else { err.textContent=''; }
+}
+
+// ── Sign Up ────────────────────────────────────────────────
+function signup(){
+  const u  = document.getElementById('su_username').value.trim();
+  const p  = document.getElementById('su_password').value;
+  const c  = document.getElementById('su_confirm').value;
+  let ok   = true;
+
+  if(!u || u.length > 10){
+    document.getElementById('su_uErr').textContent = u ? 'Username max 10 characters.' : 'Username is required.'; ok=false;
+  }
+  if(scorePassword(p) < 2){
+    document.getElementById('su_pErr').textContent = 'Password is too weak.'; ok=false;
+  } else { document.getElementById('su_pErr').textContent = ''; }
+  if(p !== c){
+    document.getElementById('su_cErr').textContent = 'Passwords do not match.'; ok=false;
+  }
+
+  const cap = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+  if(!cap){ alert('Please complete the reCAPTCHA.'); ok=false; }
+
+  if(!ok) return;
+  alert(`Account created for "${u}"! 🎉\n(Connect to your backend to save this.)`);
+}
+
+// ── Sign In ────────────────────────────────────────────────
+function signin(){
+  const u   = document.getElementById('si_username').value.trim();
+  const p   = document.getElementById('si_password').value;
+  const err = document.getElementById('si_genErr');
+  let ok = true;
+
+  if(!u){ document.getElementById('si_uErr').textContent = 'Username is required.'; ok=false; }
+  if(!p){ document.getElementById('si_pErr').textContent = 'Password is required.'; ok=false; }
+
+  const cap = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+  if(!cap){ err.textContent = 'Please complete the reCAPTCHA.'; ok=false; }
+  else { err.textContent=''; }
+
+  if(!ok) return;
+  alert(`Signing in as "${u}"!\n(Connect to your backend to verify credentials.)`);
+}
+</script>
+</body>
+</html>
