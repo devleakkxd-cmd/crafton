@@ -2,7 +2,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crafton</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
+<script src="https://cdn.ably.com/lib/ably.min-1.js">
+/* ── BLOCK RIGHT CLICK + DEVTOOLS DETECTION ── */
+document.addEventListener('contextmenu',function(e){e.preventDefault();});
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='F12'){e.preventDefault();return false;}
+  if(e.ctrlKey&&e.shiftKey&&['I','i','J','j','C','c','K','k'].includes(e.key)){e.preventDefault();return false;}
+  if(e.ctrlKey&&['U','u'].includes(e.key)){e.preventDefault();return false;}
+  if(e.ctrlKey&&['S','s'].includes(e.key)){e.preventDefault();return false;}
+});
+
+// Devtools size detection — if window shrinks a lot, devtools likely opened
+(function(){
+  var THRESHOLD = 160;
+  var blocked = false;
+  var overlay = document.createElement('div');
+  overlay.id = 'devtoolsBlock';
+  overlay.style.cssText = 'display:none;position:fixed;inset:0;z-index:99999;background:#080808;align-items:center;justify-content:center;flex-direction:column;gap:1rem;';
+  overlay.innerHTML = '<div style="font-family:Bebas Neue,sans-serif;font-size:2rem;letter-spacing:.15em;color:#fff">ACCESS DENIED</div><div style="font-size:.85rem;color:#666;letter-spacing:.05em">Close developer tools to continue.</div>';
+  document.documentElement.appendChild(overlay);
+
+  function check(){
+    var ww = window.outerWidth - window.innerWidth;
+    var wh = window.outerHeight - window.innerHeight;
+    if(ww > THRESHOLD || wh > THRESHOLD){
+      if(!blocked){
+        blocked = true;
+        overlay.style.display = 'flex';
+        document.body.style.filter = 'blur(12px)';
+      }
+    } else {
+      if(blocked){
+        blocked = false;
+        overlay.style.display = 'none';
+        document.body.style.filter = '';
+      }
+    }
+  }
+  setInterval(check, 500);
+  window.addEventListener('resize', check);
+})();
+
+/* DISABLE RIGHT CLICK */
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+  // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U, Ctrl+S
+  if(e.key==='F12'){e.preventDefault();return false;}
+  if(e.ctrlKey&&e.shiftKey&&['I','i','J','j','C','c'].includes(e.key)){e.preventDefault();return false;}
+  if(e.ctrlKey&&['U','u','S','s'].includes(e.key)){e.preventDefault();return false;}
+});
+
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -314,6 +365,19 @@ svg.cb-icon{width:28px;height:28px;stroke:#111;fill:none;stroke-width:2;stroke-l
 .settings-back-btn{background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:.4rem;font-size:.85rem;padding:0;transition:color .2s}
 .settings-back-btn:hover{color:#fff}
 .settings-page-title{font-family:'Bebas Neue';font-size:1.8rem;letter-spacing:.12em}
+
+/* CUSTOM CURSORS */
+body{cursor:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACmUlEQVR4nO2Vv2sTYRjHPyAKoiCCUkFBdHCJdCkIgkg3/4FCHTIVl1LBpai0GRw6uNgMDoWCwg2CmK0QxKFdJEOhCJHUgCWkNS09jV6rJE3f6937OFxeej3Tmh9tRegX3iGXh/fzeZ/3fe8A5gEB1gELeMohp1QXCI+5wxR40UBAgJ/Ac+D0QQt0AW4Y3tvbGxbZAlaAt8BD4PpBSHwAJB6Py/LysquU0o7jyNTUlIyOjkY74wMVoAjMEHTwAXAHiAHngDOtCtwEvGQyKY2itRbbtmV4eLjRVkXlfIKuucAqcLdZifexWEwWFhYaSoRktFJKK6XEDN/3pVqtyuTkZCOpL8CxZgS6gBog2WxW72mxS2zbbiTwrtkOQHDQBJBCoVBpVWB2dtZANfANeNYKHOAi2zfC9zxvpRmw53mSTqcN+DMQbxUczpzpQiaTyf0NXq1WZWRkRAAPSHQCNrlnBBKJhC0i5jx4EbbO5/PR/a4ArzoVOEFwjaSnp6cmIm501a7r6lQqJZZlydLSkp/JZKIi68CjTiTWzGQiUg3DHcfRfX19Aki5XPbN81KptONtWh9P2hX4ZCZRSq0ZSKVS0WFALrfziGxsbHyfmJhQoZr5dgVem0mmp6dzWmu3VqvpoaEhM/EvgjeeFIvF6Pb4g4ODpi7VrsD90CpWBwYGVHd3t/ldBq4QfAcEEMdxtoyA7/vS398vwCZwvF2BGMGdju7pD+ByveYUwamXsbEx0Vp7IiKLi4umdqZdOMBJ6jchNBzgWqTupfl/fHx83bIsn+2P0o1OBCBYbXjlV3cR3eTPTuU7hQM8JmhxATi/R93HCHwLuL0fAgCXmqhJRgTe7Be82VwAvtbh2cOGm5wFbv0r+FGOcpT/O78Bhm/GZvmNH30AAAAASUVORK5CYII=') 0 0,default}
+a,button,[onclick],label,.nav-item,.dd-item,.lb-user,.msg-av,.msg-bubble,.dash-card,.verify-btn,.btn,.tab,.s-btn,.chat-send-btn,.pv-close,.settings-back-btn,.bio-save-btn,#chatBtn,#profileBtn,#hamburger,#saveUsernameBtn,#settingsAvatar{cursor:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAD4klEQVR4nL2XXUhsVRTHf/OhDnbN6Y5CQXcu+TKQNx+D7CV6iXrx4T5KKQmZDz4khZHiSwZhDyKY9CAGUmBT9CwoGL1IdO8YggPppDRx4aLHznwwds6c41k9nA+PXzPjKC7YnL3P3mv9/3utddY+G2qXe8AzV1h/o/I98B9QAn64bfAPADnTvrtNAjuADA4OysjIiEvgCGi6DfDXgOPx8XEpFAqWpmnW7OysS+Kt2yDwFSCrq6viSjqddgl8fhMAwSrz9wGamk68HYlE3G7XbRAoAoRCIe+FiLjdF2+CQLjKfBnANM0ThbCn0uS0z4Bm4AugAXgPuAv8CPxxXQJWBQIW8BjodMYPHXv3nPHHwAjwdTUSZyXgPJuALwHZ3t72kvDw8NBNwjzn68PZ9rQa2EU54AY5CjwAiMVi3mRjY6PbfbaGzbQDL12VgCt54G2AYPDyZXNzc8bY2Jg37uvrk+np6Sc+++/XQPS87OzsNOC4MpfLeSEoFAqeizOZjCUiYpqmjI6OSn9/vxiGYYmIpFIpd90vdREQkcDAwMAxIKqqegSKxaJHQEQs9/3KyoqkUilvna7r7rrdSjh+3/YDvwH7wGE0Gl0tFAoAKIriJwbA5OQknCQsqqoSj8cvwrhTjcAD4B/gW+BV7MS5m8/n31xbWwsAJJNJLMsCoFwuA9Dd3W2eMhQM0tLS4o2dUAFEqCBB4BucqtbZ2cnExIQ3qShKAGBxcdFLxEDA3nQikSj6DUUiEf8XQjabdQlUq7b8jRPTvb29f0VESqXSfldXl+W+TyQSYhiGuAkHWIZhPBGf+PNERGRmZsbk5Oiu6IF9gI6ODuLx+B2A5ubm9vX1dc/FbW1tXgUMhULkcrmn4XC43W8oGo2eMmy5MYMQFSQI/A6wu7vrxdch0aAoigAMDQ2dUmptbX0Bu+5fKpqmGU43DFyYnS6Bn3Cq38LCggDezmOxWEDTNHp7eythXSQSCARc1weBl6spHDgkZGlpadP/fdcrw8PDCidnwhvVCHzqW3x8cHDw6Jr4Zk9Pj5uEOvBcLW7b9JEo6bq+WS+6pmmaz9aftYCDfelQfYpKMpkUOR8Oy2nHIqKJSM55evPLy8umz867tRIAeAfbZV69T6fT6lV2n8lkcj797auAu/IJ9t+OdwfY2Nj4VUSKVbB1VVVXfbom8Ho9BAB+9nsBMIDS/Px8fmtrK6+qaknXdb1cLmtHR0eH2Wz20dTU1Bz2meLqPK4XHOxTzp9I9bSH1yEQPEPAwnapPzSVWs2Zf9lfsQUMAh9inxVjwF/AK9gXkvtAG/A89jcedoCPse+SH9VK4H+mHVA+EDgO3AAAAABJRU5ErkJggg==') 10 1,pointer}
+input,textarea{cursor:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABaklEQVR4nO2XsUrDUBSGPytWxJdwEydxEXyBDlm6ObhKZ4uzdKmCDyCdO+kmmMmlBS100ymlEQSrSyNWcVBrW81xyL00aofeQuJgPgg5cOH//3tuAueCOdPqnQrVsTAPnAPvQB/oqfoFeALugUtgNaoAW4CM8VyYiKYmTZPP5/vNZtNvNBp+LpcLL81NqjkOHdRObdu+EUW5XNa794ENE0HTDuwoEyqVykK73b52XXdQr9f1+hlwaKhpzCnD8+6F6seojcPcMmy5DrAdZ4Bl4AB4VuZXcZqHWQf2VKCEhISEhIT/iQ0cAzN/Ye4wHEbugHSc5ll+j+MPwFpcATxACoWCVKtVKZVKOsQbsBm1+YkyE8dxBiIinud9ZjIZHeID2I/KfAkY6AC1Wq0rIuK6bpfvx9EHVqIIsPvDSIrFoliWNeqKlo0igAW8jjDTI7pP8B0cjSs4NUGIRYL2zhJcTNJAF2gR/AktE7EvUdqm3ZuRr38AAAAASUVORK5CYII=') 15 15,text}
+
+/* HIDE SCROLLBARS */
+*::-webkit-scrollbar{display:none}
+*{-ms-overflow-style:none;scrollbar-width:none}
+
+/* HIDE SCROLLBARS */
+*::-webkit-scrollbar{display:none}
+*{-ms-overflow-style:none;scrollbar-width:none}
 </style>
 
 <div id="particles"></div>
@@ -968,16 +1032,23 @@ function closeAvatarModal(){document.getElementById('avatarModal').classList.rem
 /* USERNAME COOLDOWN */
 function updateCooldownNote(){
   const u=getCurrentUser();if(!u)return;
-  const accounts=getAccounts();const data=accounts[u]||{};
+  const accounts=getAccounts();
+  const data=accounts[u]||{};
   const note=document.getElementById('cooldownNote');if(!note)return;
   const SEVEN=7*24*60*60*1000;
-  if(data.usernameChangedAt){
-    const left=data.usernameChangedAt+SEVEN-Date.now();
+  if(data.usernameChangedAt && data.usernameChangedAt>0){
+    const left=(data.usernameChangedAt+SEVEN)-Date.now();
     if(left>0){
       const days=Math.floor(left/(24*60*60*1000));
-      const hours=Math.ceil(left/(60*60*1000));
-      note.textContent='Username locked for '+(days>=1?days+' day'+(days!==1?'s':''):hours+' hour'+(hours!==1?'s':''))+'.';
-      note.style.color='#ff4d4d';return;
+      const hours=Math.ceil((left%(24*60*60*1000))/(60*60*1000));
+      const mins=Math.ceil(left/(60*1000));
+      let msg='';
+      if(days>=1) msg=days+' day'+(days!==1?'s':'');
+      else if(hours>=1) msg=hours+' hour'+(hours!==1?'s':'');
+      else msg=mins+' minute'+(mins!==1?'s':'');
+      note.textContent='Username locked — '+msg+' remaining.';
+      note.style.color='#ff4d4d';
+      return;
     }
   }
   note.textContent='You can change your username once every 7 days.';
@@ -990,26 +1061,60 @@ function onUsernameInput(){
 }
 function saveUsernameClick(){
   const cur=getCurrentUser();
-  const accounts=getAccounts();const data=accounts[cur]||{};
+  // Always read fresh from storage
+  const accounts=getAccounts();
+  const data=accounts[cur]||{};
   const SEVEN=7*24*60*60*1000;
-  if(data.usernameChangedAt){
-    const left=data.usernameChangedAt+SEVEN-Date.now();
+
+  // Check cooldown FIRST before anything else
+  if(data.usernameChangedAt && data.usernameChangedAt > 0){
+    const left=(data.usernameChangedAt+SEVEN)-Date.now();
     if(left>0){
-      const days=Math.floor(left/(24*60*60*1000));const hours=Math.ceil(left/(60*60*1000));
-      alert('You must wait '+(days>=1?days+' day'+(days!==1?'s':''):hours+' hour'+(hours!==1?'s':''))+' before changing your username again.');return;
+      const days=Math.floor(left/(24*60*60*1000));
+      const hours=Math.ceil((left%(24*60*60*1000))/(60*60*1000));
+      const mins=Math.ceil(left/(60*1000));
+      let waitMsg='';
+      if(days>=1) waitMsg=days+' day'+(days!==1?'s':'');
+      else if(hours>=1) waitMsg=hours+' hour'+(hours!==1?'s':'');
+      else waitMsg=mins+' minute'+(mins!==1?'s':'');
+      alert('You must wait '+waitMsg+' before changing your username again.');
+      return;
     }
   }
+
   const newName=document.getElementById('settingsUsername').value.trim();
   if(!newName){alert('Username cannot be empty.');return;}
   if(newName.length>10){alert('Username cannot exceed 10 characters.');return;}
   if(hasBadWord(newName)){alert('That username contains inappropriate words.');return;}
   if(accounts[newName]&&newName!==cur){alert('Username is already taken. Please choose another one.');return;}
+
   openModal('Change Username','Are you sure you want to change your username to "'+newName+'"?',()=>{
-    const fresh=getAccounts();const ud=fresh[cur];if(!ud){alert('Error: account not found.');return;}
+    // Re-read FRESH inside the callback — critical
+    const fresh=getAccounts();
+    const ud=fresh[cur];
+    if(!ud){alert('Error: account not found.');return;}
+
+    // Stamp the timestamp RIGHT NOW and save IMMEDIATELY
     ud.usernameChangedAt=Date.now();
-    fresh[newName]=ud;if(newName!==cur)delete fresh[cur];
-    saveAccounts(fresh);localStorage.setItem('crafton_user',newName);
-    refreshProfile(newName);renderLeaderboard();
+    fresh[newName]=ud;
+    if(newName!==cur) delete fresh[cur];
+    saveAccounts(fresh);
+
+    // Update session
+    localStorage.setItem('crafton_user',newName);
+
+    // Verify it was saved correctly
+    const verify=getAccounts();
+    const saved=verify[newName];
+    if(!saved||!saved.usernameChangedAt){
+      // Force save again if something went wrong
+      const retry=getAccounts();
+      if(retry[newName]) retry[newName].usernameChangedAt=ud.usernameChangedAt;
+      saveAccounts(retry);
+    }
+
+    refreshProfile(newName);
+    renderLeaderboard();
     document.getElementById('saveUsernameBtn').style.display='none';
     updateCooldownNote();
   });
